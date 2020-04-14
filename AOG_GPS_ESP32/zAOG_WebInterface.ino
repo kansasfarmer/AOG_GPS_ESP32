@@ -828,7 +828,8 @@ void make_HTML01() {
     //---------------------------------------------------------------------------------------------  
     // Mixed Heading
     strcat(HTML_String, "<h2>Mixed Heading</h2>");
-    strcat(HTML_String, "Uses dual GPS heading and heading from position antenna on weak signal.<br><br>");
+    strcat(HTML_String, "Uses dual GPS heading and heading from position antenna on weak signal.<br>");
+    strcat(HTML_String, "Moving average filter for heading depending on speed and signal quality.<br><br>");
     strcat(HTML_String, "<form>");
     strcat(HTML_String, "<table>");
     set_colgroup(300, 250, 150, 0, 0);

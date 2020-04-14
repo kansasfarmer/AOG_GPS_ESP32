@@ -71,9 +71,9 @@ struct set {
     //Antennas position
     double AntDist = 74.0;                //cm distance between Antennas
     double AntHight = 228.0;              //cm hight of Antenna
-    double virtAntRight = 42.0;           //cm to move virtual Antenna to the right
+    double virtAntRight = 37.0;           //cm to move virtual Antenna to the right
     double virtAntForew = 40.0;            //cm to move virtual Antenna foreward
-    double headingAngleCorrection = 91;
+    double headingAngleCorrection = 90;
 
     double AntDistDeviationFactor = 1.3;  // factor (>1), of whom lenght vector from both GPS units can max differ from AntDist before stop heading calc
     byte checkUBXFlags = 1;               //UBX sending quality flags, when used with RTK sometimes 
@@ -156,7 +156,7 @@ double VarProcessSlow = 0.004;//  0,005used, when GPS signal is  weak, no roll n
 double VarProcessVerySlow = 0.0001;//0,03  used, when GPS signal is  weak, no roll no heading
 bool filterGPSpos = false;
 
-double HeadingQuotaVTG = 0.2, HeadingQuotaRelPosNED = 0.2;
+double HeadingQuotaVTG = 0.5;
 
 #if HardwarePlatform == 0
 //WIFI
@@ -181,11 +181,11 @@ byte OGIdigit = 0, GGAdigit = 0, VTGdigit = 0, HDTdigit = 0;
 //heading + roll
 double HeadingRelPosNED = 0, cosHeadRelPosNED = 1, HeadingVTG = 0, cosHeadVTG = 1, HeadingMix = 0, cosHeadMix = 1;
 double HeadingDiff = 0, HeadingDiffMax = 0, HeadingDiffMin = 0, HeadingMixBak = 0, HeadingQualFactor = 0.5;
-byte noRollCount = 0, noHeadingCount = 0, noHeadingCountMax = 20, drivDirect = 0;
+byte noRollCount = 0,  drivDirect = 0;
 constexpr double PI180 = PI / 180;
 bool dualGPSHeadingPresent = false, rollPresent = false, virtAntPosPresent = false, add360ToRelPosNED = false, add360ToVTG = false;
 double roll = 0.0;
-byte dualAntNoValue = 0, dualAntNoValueMax = 6;// if dual Ant value not valid for xx times, send position without correction/heading/roll
+byte dualAntNoValue = 0, dualAntNoValueMax = 20;// if dual Ant value not valid for xx times, send position without correction/heading/roll
 
 
 // Variables ------------------------------
