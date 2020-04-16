@@ -810,7 +810,7 @@ if (UBXTimeFit) {
 		}
 
 		dualGPSHeadingPresent = true;
-		dualAntNoValue = 0;//reset watchdog
+		dualAntNoValueCount = 0;//reset watchdog
 
 		if (GPSSet.RollDevice == 1) {
 
@@ -861,7 +861,7 @@ else {
 	if (debugmode) { Serial.println("UBX present, but satellite time of antennas don't fit: NO heading/roll calc"); }
 	dualGPSHeadingPresent = false;
 	if (GPSSet.RollDevice == 1) { rollPresent = false; }
-	dualAntNoValue++;//increase watchdog
+	dualAntNoValueCount++;//increase watchdog
 }//UBX1+2 time don't fit
 }
 */
