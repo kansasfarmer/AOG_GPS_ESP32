@@ -243,17 +243,7 @@ void buildOGI() {
 
 	//GPS dual heading
 	double tempGPSHead;
-	if (GPSSet.useMixedHeading) {
-		if (GPSSet.debugmode) { Serial.print("mix Heading to OGI present: "); Serial.println(HeadingMix); }
-		tempGPSHead = HeadingMix;
-	}
-	else {
-		if (dualGPSHeadingPresent) { tempGPSHead = HeadingRelPosNED; }
-		else {
-			if (GPSSet.debugmode) { Serial.print("VTG Heading to OGI present: "); Serial.println(HeadingVTG); }
-			tempGPSHead = HeadingVTG;
-		}
-	}
+	tempGPSHead = HeadingMix;
 	temp = byte(tempGPSHead / 100);
 	tempGPSHead = tempGPSHead - temp * 100;
 	OGIBuffer[OGIdigit++] = temp + 48;
@@ -571,17 +561,17 @@ void buildVTG() {
 
 	//allways +48 to get ASCII: "0" = 48
 	double tempGPSHead;
-	if (GPSSet.useMixedHeading) {
-		if (GPSSet.debugmode) { Serial.print("mix Heading to OGI present: "); Serial.println(HeadingMix); }
-		tempGPSHead = HeadingMix;
-	}
+//	if (GPSSet.useMixedHeading) {
+//		if (GPSSet.debugmode) { Serial.print("mix Heading to OGI present: "); Serial.println(HeadingMix); }
+		tempGPSHead = HeadingMix; //decided in Heading calc
+/*	}
 	else {
 		if (dualGPSHeadingPresent) { tempGPSHead = HeadingRelPosNED; }
 		else {
 			if (GPSSet.debugmode) { Serial.print("VTG Heading to OGI present: "); Serial.println(HeadingVTG); }
 			tempGPSHead = HeadingVTG;
 		}
-	}
+	}*/
 	tempbyt = byte(tempGPSHead / 100);
 	tempGPSHead = tempGPSHead - tempbyt * 100;
 	VTGBuffer[VTGdigit++] = tempbyt + 48;

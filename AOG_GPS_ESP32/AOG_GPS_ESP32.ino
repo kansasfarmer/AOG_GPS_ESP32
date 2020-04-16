@@ -82,7 +82,7 @@ struct set {
     byte GPSPosCorrByRoll = 1;            // 0 = off, 1 = correction of position by roll (AntHight must be > 0)
     double rollAngleCorrection = 0.0; 
 
-    byte MaxHeadChangPerSec = 20;         // degrees that heading is allowed to change per second
+    byte MaxHeadChangPerSec = 50;         // degrees that heading is allowed to change per second
     byte useMixedHeading = 1;             // 0 = off, 1 = uses mix of VTG heading (1 Antenna) and RelPosNED (dual Antenna) if signal is low
    
     byte DataTransVia = 1;                //transfer data via 0: USB 1: WiFi
@@ -180,7 +180,7 @@ byte OGIdigit = 0, GGAdigit = 0, VTGdigit = 0, HDTdigit = 0;
 
 //heading + roll
 double HeadingRelPosNED = 0, cosHeadRelPosNED = 1, HeadingVTG = 0, cosHeadVTG = 1, HeadingMix = 0, cosHeadMix = 1;
-double HeadingDiff = 0, HeadingDiffMax = 0, HeadingDiffMin = 0, HeadingMixBak = 0, HeadingQualFactor = 0.5;
+double HeadingDiff = 0, HeadingDiffVTG = 0, HeadingMax = 0, HeadingMin = 0, HeadingMixBak = 0, HeadingQualFactor = 0.5;
 byte noRollCount = 0,  drivDirect = 0;
 constexpr double PI180 = PI / 180;
 bool dualGPSHeadingPresent = false, rollPresent = false, virtAntPosPresent = false, add360ToRelPosNED = false, add360ToVTG = false;
