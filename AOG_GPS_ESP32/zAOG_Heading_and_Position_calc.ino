@@ -317,12 +317,11 @@ void headingRollCalc() {
 	}
 	else { HeadingDiff = 200; }
 
-	if (HeadingDiff < 1.0) { HeadingDiff = 1.0; }//for high speed
+	if (HeadingDiff < 2.0) { HeadingDiff = 2.0; }//for high speed
 	
-	HeadingDiffVTG = HeadingDiff * 3;
-	HeadingMin = HeadingVTG - HeadingDiffVTG;
-	HeadingMax = HeadingVTG + HeadingDiffVTG;
-	if ((HeadingVTG > HeadingDiffVTG) && (HeadingVTG < (360 - HeadingDiffVTG))) {//360 to 0		
+	HeadingMin = HeadingVTG - HeadingDiff;
+	HeadingMax = HeadingVTG + HeadingDiff;
+	if ((HeadingVTG > HeadingDiff) && (HeadingVTG < (360 - HeadingDiff)) && (UBXPVT1[UBXRingCount1].gSpeed > 1000)) {		
 		if (GPSSet.debugmodeRAW) {
 			Serial.print("HeadingVTG VTGconstrain,");
 			Serial.print(HeadingVTG); Serial.print(",");
@@ -381,7 +380,7 @@ void headingRollCalc() {
 		Serial.print(HeadingRelPosNED); Serial.print(",");
 		Serial.print(HeadingMix); Serial.print(",");
 	}
-
+/*
 	HeadingMin = HeadingMixBak - HeadingDiff;
 	HeadingMax = HeadingMixBak + HeadingDiff;
 	if ((HeadingMixBak > HeadingDiff) && (HeadingMixBak < (360-HeadingDiff))) {//360 to 0
@@ -393,12 +392,12 @@ void headingRollCalc() {
 		if (GPSSet.debugmodeRAW) {Serial.print("constrain used,");}
 	}
 	else { if (GPSSet.debugmodeRAW) { Serial.print("NO constrain,"); } }
-
+*/
 	if (GPSSet.debugmodeRAW) {
-		Serial.print("headDiffMin HeadDiffMax HeadingMix,");
-		Serial.print(HeadingMin); Serial.print(",");
-		Serial.print(HeadingMax); Serial.print(",");
-		Serial.print(HeadingMix); Serial.print(",");
+	//	Serial.print("headDiffMin HeadDiffMax HeadingMix,");
+	//	Serial.print(HeadingMin); Serial.print(",");
+	//	Serial.print(HeadingMax); Serial.print(",");
+	//	Serial.print(HeadingMix); Serial.print(",");
 		Serial.print("NoRollCount DualAntNoValueCount,");
 		Serial.print(noRollCount); Serial.print(",");
 		Serial.print(dualAntNoValueCount); Serial.print(",");
