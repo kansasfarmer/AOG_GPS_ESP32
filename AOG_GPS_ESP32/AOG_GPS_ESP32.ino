@@ -74,7 +74,7 @@ struct set {
     //Antennas position
     double AntDist = 74.0;                //cm distance between Antennas
     double AntHight = 228.0;              //cm hight of Antenna
-    double virtAntRight = 42.0;           //cm to move virtual Antenna to the right
+    double virtAntRight = 37.0;           //cm to move virtual Antenna to the right
     double virtAntForew = 60.0;            //cm to move virtual Antenna foreward
     double headingAngleCorrection = 90;
 
