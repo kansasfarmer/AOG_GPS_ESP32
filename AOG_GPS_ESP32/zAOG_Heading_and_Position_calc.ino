@@ -30,7 +30,7 @@ void headingRollCalc() {
 							headVTGVarProcess = VarProcessMedi; //set Kalman filter
 							if (drivDirect < 2) {//forewards or unknown
 								if (UBXRelPosNED[UBXRingCount2].relPosHeading > 1) {//RelPosNED ok								
-									HeadingQualFactor = 0.6;//0.7
+									HeadingQualFactor = 0.8;//0.7
 									HeadingQuotaVTG = 0.0;
 								}
 								else {//RelPosNED fails
