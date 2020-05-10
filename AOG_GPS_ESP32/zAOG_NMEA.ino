@@ -242,8 +242,7 @@ void buildOGI() {
 
 
 	//GPS dual heading
-	double tempGPSHead;
-	tempGPSHead = HeadingMix;
+	double tempGPSHead = HeadingMix;
 	temp = byte(tempGPSHead / 100);
 	tempGPSHead = tempGPSHead - temp * 100;
 	OGIBuffer[OGIdigit++] = temp + 48;
@@ -259,7 +258,7 @@ void buildOGI() {
 	OGIBuffer[OGIdigit++] = 0x2C;//,
 
 	//roll
-	double tempRoll = 0 - roll;
+	double tempRoll = 0 - rollToAOG;
 	if (tempRoll < 0) {
 		OGIBuffer[OGIdigit++] = 0x2D;//-
 		tempRoll *= -1;
@@ -318,12 +317,7 @@ void buildHDT() {
 	HDTBuffer[5] = 0x54;//T
 	HDTBuffer[6] = 0x2C;//,
 	//heading
-	double tempGPSHead;
-	if (GPSSet.useMixedHeading) {
-		if (GPSSet.debugmode) { Serial.print("mix Heading to OGI present: "); Serial.println(HeadingMix); }
-		tempGPSHead = HeadingMix;
-	}
-	else { tempGPSHead = HeadingRelPosNED; }
+	double tempGPSHead = HeadingMix;
 	tempbyt = byte(tempGPSHead / 100);
 	tempGPSHead = tempGPSHead - tempbyt * 100;
 	HDTBuffer[7] = tempbyt + 48;

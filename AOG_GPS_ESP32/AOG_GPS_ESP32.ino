@@ -24,6 +24,7 @@
 //the settings below are written as defalt values and can be reloaded.
 //So if changing settings set EEPROM_clear = true; (line ~97) - flash - boot - reset to EEPROM_clear = false - flash again to keep them as defauls
 
+#include <HTTP_Method.h>
 #define HardwarePlatform 0      //0 = runs on ESP32, 1 = runs on Arduino Mega
 
 struct set {
@@ -33,7 +34,7 @@ struct set {
     //  TX1----------RX1--------------------------------RTCM in           (NTRIP comming from AOG to get absolute/correct postion
     //  RX2--------------------------------TX1----------UBX-RelPosNED out (=position relative to other Antenna)
     //  TX2--------------------------------RX1----------
-    //               RX2-------------------TX2----------RTCM 1077+1087+1097+1127+1230+4072.0+4072.1 (activate in both F9P!! = NTRIP for relative positioning)
+    //               RX2-------------------TX2----------RTCM 1077+1087+1097+1127+1230+4072.0+4072.1 (activate in right F9P = NTRIP for relative positioning)
   
     // IO pins ----------------------------------------------------------------------------------------
     byte RX1 = 27;              //right F9P TX1 GPS pos
@@ -54,6 +55,8 @@ struct set {
     char ssid_ap[24] = "GPS_unit_F9P_Net";  // name of Access point, if no WiFi found, NO password!!
     int timeoutRouter = 100;                //time (s) to search for existing WiFi, than starting Accesspoint 
 
+    byte timeoutWebIO = 10;                 //time (min) afterwards webinterface is switched off
+
     //static IP
     byte myip[4] = { 192, 168, 1, 79 };     // Roofcontrol module 
     byte gwip[4] = { 192, 168, 1, 1 };      // Gateway IP also used if Accesspoint created
@@ -71,19 +74,18 @@ struct set {
     //Antennas position
     double AntDist = 74.0;                //cm distance between Antennas
     double AntHight = 228.0;              //cm hight of Antenna
-    double virtAntRight = 37.0;           //cm to move virtual Antenna to the right
-    double virtAntForew = 40.0;            //cm to move virtual Antenna foreward
+    double virtAntRight = 42.0;           //cm to move virtual Antenna to the right
+    double virtAntForew = 60.0;            //cm to move virtual Antenna foreward
     double headingAngleCorrection = 90;
 
-    double AntDistDeviationFactor = 1.3;  // factor (>1), of whom lenght vector from both GPS units can max differ from AntDist before stop heading calc
+    double AntDistDeviationFactor = 1.2;  // factor (>1), of whom lenght vector from both GPS units can max differ from AntDist before stop heading calc
     byte checkUBXFlags = 1;               //UBX sending quality flags, when used with RTK sometimes 
     byte filterGPSposOnWeakSignal = 1;    //filter GPS Position on weak GPS signal
    
     byte GPSPosCorrByRoll = 1;            // 0 = off, 1 = correction of position by roll (AntHight must be > 0)
     double rollAngleCorrection = 0.0; 
 
-    byte MaxHeadChangPerSec = 50;         // degrees that heading is allowed to change per second
-    byte useMixedHeading = 1;             // 0 = off, 1 = uses mix of VTG heading (1 Antenna) and RelPosNED (dual Antenna) if signal is low
+    byte MaxHeadChangPerSec = 30;         // degrees that heading is allowed to change per second
    
     byte DataTransVia = 1;                //transfer data via 0: USB 1: WiFi
 
@@ -114,8 +116,8 @@ unsigned int LED_WIFI_time = 0;
 unsigned int LED_WIFI_pulse = 1400;   //light on in ms 
 unsigned int LED_WIFI_pause = 700;   //light off in ms
 boolean LED_WIFI_ON = false;
-unsigned long NtripDataTime = 0, now = 0;
-
+unsigned long NtripDataTime = 0, now = 0, WebIOTimeOut = 0;
+bool WebIORunning = true;
 
 
 //Kalman filter roll
@@ -149,10 +151,10 @@ double lonP = 1.0;
 double lonVar = 0.1; // variance, smaller, more faster filtering
 double lonVarProcess = 0.3;// replaced by fast/slow depending on GPS quality
 
-double VarProcessVeryFast = 0.3;//0,5  used, when GPS signal is weak, no roll, but heading OK
-double VarProcessFast = 0.15;//0,3  used, when GPS signal is weak, no roll, but heading OK
-double VarProcessMedi = 0.08;//0,1  used, when GPS signal is  weak, no roll no heading
-double VarProcessSlow = 0.004;//  0,005used, when GPS signal is  weak, no roll no heading
+double VarProcessVeryFast = 0.2;//0,3  used, when GPS signal is weak, no roll, but heading OK
+double VarProcessFast = 0.08;//0,15  used, when GPS signal is weak, no roll, but heading OK
+double VarProcessMedi = 0.02;//0,08 used, when GPS signal is  weak, no roll no heading
+double VarProcessSlow = 0.001;//  0,004used, when GPS signal is  weak, no roll no heading
 double VarProcessVerySlow = 0.0001;//0,03  used, when GPS signal is  weak, no roll no heading
 bool filterGPSpos = false;
 
@@ -179,12 +181,12 @@ bool newOGI = false, newHDT = false, newGGA = false, newVTG = false;
 byte OGIdigit = 0, GGAdigit = 0, VTGdigit = 0, HDTdigit = 0;
 
 //heading + roll
-double HeadingRelPosNED = 0, cosHeadRelPosNED = 1, HeadingVTG = 0, cosHeadVTG = 1, HeadingMix = 0, cosHeadMix = 1;
+double HeadingRelPosNED = 0, cosHeadRelPosNED = 1, HeadingVTG = 0, HeadingVTGOld = 0, cosHeadVTG = 1, HeadingMix = 0, cosHeadMix = 1;
 double HeadingDiff = 0, HeadingMax = 0, HeadingMin = 0, HeadingMixBak = 0, HeadingQualFactor = 0.5;
 byte noRollCount = 0,  drivDirect = 0;
 constexpr double PI180 = PI / 180;
 bool dualGPSHeadingPresent = false, rollPresent = false, virtAntPosPresent = false, add360ToRelPosNED = false, add360ToVTG = false;
-double roll = 0.0;
+double roll = 0.0, rollToAOG = 0.0;
 byte dualAntNoValueCount = 0, dualAntNoValueMax = 20;// if dual Ant value not valid for xx times, send position without correction/heading/roll
 
 
@@ -265,18 +267,22 @@ NAV_RELPOSNED UBXRelPosNED[sizeOfUBXArray];
 
 #if HardwarePlatform == 0
 #include <AsyncUDP.h>
-#include <WiFiSTA.h>
-#include <WiFiServer.h>
+//#include <WiFiUdp.h>
+//#include <WiFiSTA.h>
+//#include <WiFiServer.h>
 #include <WiFiClient.h>
-#include <WiFiAP.h>
+#include <WebServer.h>
+#include <Update.h>
+//#include <WiFiAP.h>
 #include <WiFi.h>
 #include <EEPROM.h>
+
 
 //instances----------------------------------------------------------------------------------------
 AsyncUDP udpRoof;
 AsyncUDP udpNtrip;
-WiFiServer server(80);
-WiFiClient client_page;
+WebServer server(80);
+
 #endif
 
 // SETUP ------------------------------------------------------------------------------------------
@@ -340,15 +346,21 @@ void setup()
         Serial.println(GPSSet.portMy);
     }
     delay(200);
-    server.begin();
+  
+    //start Server for Webinterface
+    StartServer();
+
     delay(50);
+    WebIOTimeOut = millis() + (long(GPSSet.timeoutWebIO) * 60000);
 #endif
+
 }
 
 // MAIN loop  -------------------------------------------------------------------------------------------
 
 void loop()
 {
+
 	getUBX();//read serials    
 
 	if (UBXRingCount1 != OGIfromUBX)//new UXB exists
@@ -449,9 +461,9 @@ void loop()
 			newHDT = false;
 		}
 	}
-
+    now = millis();
     if ((GPSSet.AOGNtrip == 1) && (GPSSet.LEDWiFi_PIN != 0)) {
-        now = millis();
+       
         if (now > (NtripDataTime + 3000)) {
             if ((LED_WIFI_ON) && (now > (LED_WIFI_time + LED_WIFI_pulse))) {
                 digitalWrite(GPSSet.LEDWiFi_PIN, !GPSSet.LEDWiFi_ON_Level);
@@ -466,7 +478,14 @@ void loop()
         }
     }
 
-	doWebInterface();
+    if (WebIORunning) {
+        if ((now > WebIOTimeOut) && (GPSSet.timeoutWebIO != 255)) {
+            WebIORunning = false;
+            server.close();
+            if (GPSSet.debugmode) { Serial.println("switching off Webinterface"); }
+        }
+        server.handleClient(); //does the Webinterface
+    }
 #endif
     
 }
